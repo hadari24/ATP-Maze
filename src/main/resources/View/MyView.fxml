@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import View.GameBoard?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="View.MyViewController"
+            style="-fx-background-image: url('/images/welcome_background.png');
+                   -fx-background-size: cover;
+                   -fx-background-position: center center;">
+
+    <!-- Top: MenuBar + Start Button -->
+    <top>
+        <AnchorPane>
+            <HBox spacing="0" AnchorPane.leftAnchor="0" AnchorPane.topAnchor="0" AnchorPane.rightAnchor="0" alignment="CENTER_LEFT">
+                <MenuBar>
+                    <Menu text="File">
+                        <MenuItem fx:id="menuItemNew"   text="New" onAction="#handleNewMaze"/>
+                        <MenuItem fx:id="menuItemSave"  text="Save" onAction="#handleSaveMaze"/>
+                        <MenuItem fx:id="menuItemLoad"  text="Load" onAction="#handleLoadMaze"/>
+                        <MenuItem fx:id="menuItemExit"  text="Exit" onAction="#handleExit"/>
+                    </Menu>
+                    <Menu text="Options">
+                        <MenuItem fx:id="menuItemProperties" text="Properties" onAction="#handleProperties"/>
+                    </Menu>
+                    <Menu text="Solve">
+                        <MenuItem fx:id="menuItemShowSolution" text="Show Solution" onAction="#handleShowSolution"/>
+                        <MenuItem fx:id="menuItemHideSolution" text="Hide Solution" onAction="#handleHideSolution"/>
+                    </Menu>
+                    <Menu text="Help">
+                        <MenuItem text="Help" onAction="#handleHelp"/>
+                    </Menu>
+                    <Menu text="About">
+                        <MenuItem text="About" onAction="#handleAbout"/>
+                    </Menu>
+                </MenuBar>
+
+                <Pane HBox.hgrow="ALWAYS"/>
+
+                <!-- Start Button -->
+                <Button fx:id="startButton"
+                        text="Start"
+                        onAction="#handleStart"
+                        visible="false"
+                        managed="false"
+                        style="-fx-padding:5 15; -fx-font-size:14px;"/>
+            </HBox>
+        </AnchorPane>
+    </top>
+
+    <!-- Center: Maze GameBoard + Confetti -->
+    <center>
+        <AnchorPane fx:id="centerPane">
+            <GameBoard fx:id="gameBoard"
+                       style="-fx-background-color: transparent;"
+                       AnchorPane.topAnchor="0"
+                       AnchorPane.bottomAnchor="0"
+                       AnchorPane.leftAnchor="0"
+                       AnchorPane.rightAnchor="0"/>
+            <Pane fx:id="confettiLayer"
+                  mouseTransparent="true"
+                  AnchorPane.topAnchor="0"
+                  AnchorPane.bottomAnchor="0"
+                  AnchorPane.leftAnchor="0"
+                  AnchorPane.rightAnchor="0"/>
+        </AnchorPane>
+    </center>
+
+    <!-- Bottom Panel: Menu + Input Options -->
+    <bottom>
+        <VBox spacing="20" alignment="center" style="-fx-padding: 40;">
+            <!-- Main Menu -->
+            <VBox fx:id="mainMenuPanel" spacing="15" alignment="center">
+                <Button text="Regular Maze"
+                        onAction="#handleRegularMaze"
+                        style="-fx-font-size:18px; -fx-padding:10 30; -fx-background-color:steelblue; -fx-text-fill:white;"/>
+                <Button text="Mission Maze"
+                        onAction="#handleMissionMaze"
+                        style="-fx-font-size:18px; -fx-padding:10 30; -fx-background-color:orangered; -fx-text-fill:white;"/>
+            </VBox>
+
+            <!-- Input for manual or default maze generation -->
+            <VBox fx:id="bottomPanel"
+                  spacing="15"
+                  alignment="center"
+                  visible="false"
+                  managed="false"
+                  style="-fx-translate-y:-20;">
+
+                <!-- Manual size input fields -->
+                <Label text="Custom Maze Size:" style="-fx-font-size:16px; -fx-text-fill:white;"/>
+                <HBox spacing="10" alignment="center">
+                    <TextField fx:id="rowsField"
+                               promptText="Rows"
+                               maxWidth="100"
+                               style="-fx-font-size:14px; -fx-text-fill:black; -fx-prompt-text-fill:black;"/>
+                    <TextField fx:id="colsField"
+                               promptText="Columns"
+                               maxWidth="100"
+                               style="-fx-font-size:14px; -fx-text-fill:black; -fx-prompt-text-fill:black;"/>
+                </HBox>
+
+                <!-- Action buttons -->
+                <HBox spacing="20" alignment="center">
+                    <Button fx:id="generateMazeButton"
+                            text="Generate Maze"
+                            onAction="#handleGenerateMaze"
+                            style="-fx-font-size:16px; -fx-padding:8 20; -fx-background-color:forestgreen; -fx-text-fill:white;"/>
+                    <Button fx:id="defaultButton"
+                            text="Start Default Maze"
+                            onAction="#handleDefaultMaze"
+                            style="-fx-font-size:16px; -fx-padding:8 20; -fx-background-color:steelblue; -fx-text-fill:white;"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </bottom>
+</BorderPane>
