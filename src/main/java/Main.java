@@ -3,6 +3,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import View.MyViewController;
+import ViewModel.MyViewModel;
+import Model.MyModel;
 
 import java.io.InputStream;
 import java.util.Properties;
@@ -20,8 +23,16 @@ public class Main extends Application {
             props.load(is);
         }
 
-        // Load FXML and show stage
-        Parent root = FXMLLoader.load(getClass().getResource("/View/MyView.fxml"));
+        // Load FXML with controller access
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/View/MyView.fxml"));
+        Parent root = loader.load();
+
+        // Inject ViewModel
+        MyViewController controller = loader.getController();
+        MyViewModel viewModel = new MyViewModel(new MyModel());
+        controller.setViewModel(viewModel);
+
+        // Show stage
         primaryStage.setTitle("Maze Game");
         primaryStage.setScene(new Scene(root, 800, 800));
         primaryStage.show();

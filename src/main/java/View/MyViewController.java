@@ -62,96 +62,57 @@ public class MyViewController implements IView, Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // הסתרת הפנל המרכזי
+        // הסתרת הפאנל המרכזי בתחילת הדרך
         centerPane.setVisible(false);
         centerPane.setManaged(false);
 
-        // קישור מימדי gameBoard לגודל ה־centerPane
+        // קישור גודל GameBoard לגודל המרכז
         gameBoard.prefWidthProperty().bind(centerPane.widthProperty());
         gameBoard.prefHeightProperty().bind(centerPane.heightProperty());
 
-        // אתחול MazeDisplayer ותמונות
+        // הגדרת תמונות למבוך
         MazeDisplayer displayer = gameBoard.getMazeDisplayer();
-        displayer.setWallImage       (new Image(getClass().getResourceAsStream("/images/wall.png")));
-        displayer.setFloorImage      (new Image(getClass().getResourceAsStream("/images/floor.png")));
-        displayer.setGoalImage       (new Image(getClass().getResourceAsStream("/images/end_point.png")));
-        displayer.setCharacterImage  (new Image(getClass().getResourceAsStream("/images/character.png")));
-        displayer.setStartImage      (new Image(getClass().getResourceAsStream("/images/start_point.png")));
-        displayer.setEnemyImage      (new Image(getClass().getResourceAsStream("/images/enemy.png")));
+        displayer.setWallImage(new Image(getClass().getResourceAsStream("/images/wall.png")));
+        displayer.setFloorImage(new Image(getClass().getResourceAsStream("/images/floor.png")));
+        displayer.setGoalImage(new Image(getClass().getResourceAsStream("/images/end_point.png")));
+        displayer.setCharacterImage(new Image(getClass().getResourceAsStream("/images/character.png")));
+        displayer.setStartImage(new Image(getClass().getResourceAsStream("/images/start_point.png")));
+        displayer.setEnemyImage(new Image(getClass().getResourceAsStream("/images/enemy.png")));
+
+        // לאפשר פוקוס ולקבל קלט מקלדת
         displayer.setFocusTraversable(true);
         displayer.setOnMouseClicked(e -> displayer.requestFocus());
-        displayer.setOnKeyPressed(this::keyPressed);
+        displayer.addEventHandler(KeyEvent.KEY_PRESSED, this::keyPressed); // ⭐ חשוב מאוד
 
-        // טיימר לקונפטי
-        confettiTimer = new AnimationTimer() {
-            @Override public void handle(long now) {
-                for (ConfettiParticle p : particles) p.update();
-            }
-        };
-
-        // אתחול ViewModel
-        MyModel model = new MyModel();
-        viewModel = new MyViewModel(model);
-
-        // טעינת config.properties
+        // טעינת קובץ properties
         appProperties = new Properties();
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("config.properties")) {
-            if (is == null) {
-                System.err.println("⚠️ config.properties not found on classpath!");
-            } else {
+            if (is != null) {
                 appProperties.load(is);
+            } else {
+                System.err.println("⚠️ config.properties not found");
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println("⚠️ Failed to load config.properties: " + e.getMessage());
         }
 
-        // מאזין ל־mazeProperty
-        viewModel.mazeProperty().addListener((ObservableValue<? extends Maze> obs, Maze oldM, Maze newM) -> {
-            if (newM != null) {
-                mazeGrid = newM.getGrid();
-                startR   = newM.getStartPosition().getRowIndex();
-                startC   = newM.getStartPosition().getColumnIndex();
-                currentR = currentC = -1;
-
-                centerPane.setVisible(true);
-                centerPane.setManaged(true);
-
-                gameBoard.setMaze(mazeGrid);
-                gameBoard.setStartPosition(startR, startC);
-                gameBoard.setGoalPosition(
-                        newM.getGoalPosition().getRowIndex(),
-                        newM.getGoalPosition().getColumnIndex()
-                );
-                startButton.setVisible(true);
-                startButton.setManaged(true);
-                gameBoard.setCharacterPosition(-1, -1);
-                ((BorderPane) displayer.getScene().getRoot()).setStyle("");
-
-                if (isMissionMode && missionLevel >= 3) {
-                    spawnEnemies(missionLevel - 2);
-                } else {
-                    enemies.clear();
-                    displayer.setEnemies(Collections.emptyList());
-                }
-            }
-        });
-
-        // —— לחצן מבוך דיפולט בלבד ——
-        //defaultButton.setOnAction(e -> {
-            //int rows = Integer.parseInt(appProperties.getProperty("maze.defaultRows", "10"));
-            //int cols = Integer.parseInt(appProperties.getProperty("maze.defaultCols", "10"));
-            //viewModel.generateMaze(rows, cols);
-            //bottomPanel.setVisible(false);
-            //bottomPanel.setManaged(false);
-        //});
-
-        // FadeTransition עבור ה־bottomPanel
+        // אנימציית Fade לפאנל התחתון
+        // אנימציית Fade לפאנל התחתון
         FadeTransition ft = new FadeTransition(Duration.seconds(1.5), bottomPanel);
         ft.setFromValue(0);
         ft.setToValue(1);
         ft.play();
-    }
 
+// אתחול confettiTimer ✅
+        confettiTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                for (ConfettiParticle p : particles) {
+                    p.update();
+                }
+            }
+        };
+    }
 
 
     private void spawnEnemies(int count) {
@@ -183,18 +144,27 @@ public class MyViewController implements IView, Initializable {
         gameBoard.getMazeDisplayer().setEnemies(enemies);
     }
 
-
-
-    @FXML private void handleStart() {
+    @FXML
+    private void handleStart() {
         currentR = startR;
         currentC = startC;
-        gameBoard.setShowStartImage(true);
+
+        gameBoard.setShowStartImage(false); // הסתרת תמונת התחלה
         gameBoard.setCharacterPosition(currentR, currentC);
+
+        // הבאת פוקוס ל־MazeDisplayer כדי שיקבל אירועי מקשים
+        MazeDisplayer displayer = gameBoard.getMazeDisplayer();
+        displayer.setFocusTraversable(true);
+
+        // הקפד לשים את זה בתוך runLater כדי לוודא שה־FXML נטען
+        Platform.runLater(displayer::requestFocus);
+
         startButton.setVisible(false);
         startButton.setManaged(false);
-        gameBoard.getMazeDisplayer().requestFocus();
         musicPlayer.playMusic();
     }
+
+
 
     @FXML
     public void keyPressed(KeyEvent event) {
@@ -407,7 +377,42 @@ public class MyViewController implements IView, Initializable {
         alert.showAndWait();
     }
 
-    @Override public void setViewModel(MyViewModel vm) { this.viewModel = vm; }
+    //@Override public void setViewModel(MyViewModel vm) { this.viewModel = vm; }
+    @Override
+    public void setViewModel(MyViewModel vm) {
+        this.viewModel = vm;
+
+        viewModel.mazeProperty().addListener((obs, oldMaze, newMaze) -> {
+            if (newMaze != null) {
+                startR = newMaze.getStartPosition().getRowIndex();
+                startC = newMaze.getStartPosition().getColumnIndex();
+                currentR = currentC = -1;
+
+                this.mazeGrid = newMaze.getGrid(); // ✅ חובה!
+
+                gameBoard.setMaze(mazeGrid);
+                gameBoard.setStartPosition(startR, startC);
+                gameBoard.setGoalPosition(
+                        newMaze.getGoalPosition().getRowIndex(),
+                        newMaze.getGoalPosition().getColumnIndex()
+                );
+
+                gameBoard.setCharacterPosition(-1, -1);
+                gameBoard.setShowStartImage(true);
+
+                centerPane.setVisible(true);
+                centerPane.setManaged(true);
+                startButton.setVisible(true);
+                startButton.setManaged(true);
+                ((BorderPane) gameBoard.getScene().getRoot()).setStyle("");
+            }
+        });
+
+    }
+
+
+
+
 
     public void mouseDragged(MouseEvent e) {}
 
